@@ -1,14 +1,15 @@
 from pathlib import Path
 import pickle
 
-import hydra
+import hydra 
+from hydra.utils import instantiate
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, OmegaConf
 from dataset import prepare_dataset
 from client import generate_client_fn
 
 import flwr as fl
-from server import get_on_fit_config, get_evaluate_fn
+from server import get_evaluate_fn
 
 
 @hydra.main(config_path="conf", config_name="base", version_base=None)
@@ -23,19 +24,12 @@ def main(cfg:DictConfig):
     # print(len(trainloaders), len(trainloaders[0].dataset)) # number of clients and samples in the first trainloader
 
     # Define clients
-    client_fn=generate_client_fn(trainloaders, validationloaders, cfg.num_classes)
+    client_fn=generate_client_fn(trainloaders, validationloaders, cfg.model)
 
     #Define strategy
-    strategy=fl.server.strategy.FedAvg(fraction_fit=0.00001,
-                                       min_fit_clients=cfg.num_clients_per_round_fit,
-                                       fraction_evaluate=0.0001,
-                                       min_evaluate_clients=cfg.num_clients_per_round_eval,
-                                       min_available_clients=cfg.num_clients,
-                                       on_fit_config_fn= get_on_fit_config(cfg.config_fit), #config we want to send to the client
-                                       evaluate_fn=get_evaluate_fn(cfg.num_classes, testloaders)
+    
+    strategy=instantiate(cfg.strategy,evaluate_fn=get_evaluate_fn(cfg.model, testloaders)
                                         )
-    # fraction_fit= not all clients are available
-
     # Start simulation
     history=fl.simulation.start_simulation(
         client_fn=client_fn,

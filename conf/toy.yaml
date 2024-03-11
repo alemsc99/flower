@@ -7,3 +7,21 @@ bar:
   more:
     bla: "hello"
     blabla: ${foo}
+
+
+my_func:
+  _target_: toy.function_test
+  x: 123
+  y: 321
+
+my_partial_func:
+  _target_: toy.function_test
+  x: 123
+  _partial_: true
+
+my_object:
+  _target_: toy.MyClass
+  x: 32
+
+defaults: 
+  - toy_model: resnet18

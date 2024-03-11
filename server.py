@@ -1,8 +1,8 @@
 from collections import OrderedDict
 from omegaconf import DictConfig
 import torch
-from model import Net, test
-
+from model import test
+from hydra.utils import instantiate
 def get_on_fit_config(config: DictConfig):
     def fit_config_fn(server_round:int):
         # if server_round>50:
@@ -12,11 +12,11 @@ def get_on_fit_config(config: DictConfig):
     
     return fit_config_fn
 
-def get_evaluate_fn(num_classes:int, testloader):
+def get_evaluate_fn(model_cfg, testloader):
     # it is called by the strategy at the end of the aggregation process. 
     # parameters= updated parameters of the global model
     def evaluate_fn(server_round:int, parameters, config):
-        model=Net(num_classes)
+        model=instantiate(model_cfg)
 
         device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 

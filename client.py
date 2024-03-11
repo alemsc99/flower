@@ -3,23 +3,25 @@ from typing import Dict, Tuple
 
 from flwr.common import NDArrays
 
-from model import Net, train, test
+from model import train, test
 import torch
 import flwr as fl
+
+from hydra.utils import instantiate
 
 
 class FlowerClient(fl.client.NumPyClient):
     def __init__(self,
                  trainloader,
                  valloader, 
-                 num_classes
+                 model_cfg
                  )->None:
         super().__init__()
 
         self.trainloader=trainloader
         self.valloader=valloader
 
-        self.model=Net(num_classes) #initialized with random weights
+        self.model=instantiate(model_cfg) #initialized with random weights
 
         self.device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         # print(f"Device: {self.device} ")
@@ -74,14 +76,14 @@ class FlowerClient(fl.client.NumPyClient):
 
 
 
-def generate_client_fn(trainloaders, valloaders, num_classes):
+def generate_client_fn(trainloaders, valloaders, model_cfg):
     """Function to be called in main.py and then it will be passed to the server so that the server 
     can use it to spawn a client with a certain cid"""
     def client_fn(cid:str):
 
         return FlowerClient(trainloader=trainloaders[int(cid)],
-                            valloader=valloaders[int(cid)],
-                            num_classes=num_classes)
+                            vallomodel_cfgader=valloaders[int(cid)],
+                            model_cfg=model_cfg)
 
     return client_fn
     
