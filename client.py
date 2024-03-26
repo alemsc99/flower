@@ -82,7 +82,7 @@ def generate_client_fn(trainloaders, valloaders, model_cfg):
     def client_fn(cid:str):
 
         return FlowerClient(trainloader=trainloaders[int(cid)],
-                            vallomodel_cfgader=valloaders[int(cid)],
+                            valloader=valloaders[int(cid)],
                             model_cfg=model_cfg)
 
     return client_fn
